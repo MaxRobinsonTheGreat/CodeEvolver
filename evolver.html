@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Code Evolver</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+  <style>
+    body, html { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; display: flex; }
+    .pages-container { width: 100%; display: flex; flex-direction: column; flex-grow: 1; }
+    .page-container { display: flex; flex-direction: row; flex: 1; }
+    iframe { width: 100%; height: 100%; border: none; box-sizing: border-box; flex-grow: 5; }
+    .console-container { display: flex; flex-direction: column; flex: 2; box-sizing: border-box; border: 1px solid rgb(82, 82, 82); }
+    .console-header { background-color: #343a40; justify-content: space-between; padding: 5px; display: flex; }
+    .console-header button { background-color: #495057; color: #fff; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer; align-items: center; flex: 1; }
+    .console-header button:hover { background-color: #6c757d; }
+    .console-header button:active { background-color: #26292d; }
+    .console { width: 100%; height: calc(100% - 30px); background-color: #212529; color: #fff; padding: 10px; overflow-x: wrap; overflow-y: auto; font-family: monospace; box-sizing: border-box; }
+    .console span { display: block; }
+    .console span.error { color: #dc3545; }
+    .control-panel { width: 30%; background-color: #212529; padding: 10px; box-sizing: border-box; color: white; overflow: auto;}
+    .control-panel input { width: 100%; height: 30px; background-color: #343a40; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; overflow: wrap; }
+    .control-panel select { width: 100%; height: 30px; background-color: #343a40; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; }
+    .control-panel span { display: block; margin-bottom: 10px; border: 1px solid #495057; padding: 3px;}
+    .control-panel button { width: 100%; height: 30px; background-color: #495057; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; cursor: pointer; }
+    .control-panel button:hover { background-color: #6c757d; } 
+    .control-panel button:active { background-color: #26292d; }
+    .api-key-group { display: flex; align-items: center; }
+    /* add some space between the two */
+    .api-key-group h4 { margin-right: 10px; padding-bottom: 10px; }
+    .api-key-group input { flex: 1; }
+    hr { margin: 20px 0; background-color: #495057; border: none; height: 2px; }
+  </style>
+</head>
+<body>
+  <div class="control-panel">
+    <!-- Inputs labeled as System Prompt, Start Prompt, Variation Prompt, and dropdown menu labeled as Model -->
+    <h1>Code Evolver</h1>
+    
+    <hr>
+
+    <h3>Start Prompt</h3>
+    <span id="startPrompt" role="textbox" contenteditable spellcheck="false"></span>
+
+    <button id="generateButton">Start New</button>
+
+    <h3>Modify Prompt</h3>
+    <span id="variationPrompt" role="textbox" contenteditable spellcheck="false"></span>
+
+    <h3>Model</h3>
+    <select id="model">
+      <option value="gpt3">GPT 3.5</option>
+      <option value="gpt4">GPT 4</option>
+      <option value="claude-sonnet">Claude Sonnet</option>
+      <option value="claude-opus">Claude Opus</option>
+    </select>
+
+    <div class="api-key-group">
+      <h4>API Key</h4>
+      <input type="password" id="apiKey" placeholder="(will not be saved)" required>
+    </div>
+
+    <h3>System Prompt <i class="fa fa-edit" id="edit-system" style="cursor: pointer;"></i></h3>
+    <span id="systemPrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
+
+  </div>
+  <div class="pages-container" id="pagesContainer"></div>
+
+  <!-- import splice.js -->
+  <script src="splice.js"></script>
+  <script>
+    function receiveMessage(event) {
+      if (event.data.type === 'error' || event.data.type === 'log') {
+        const data = JSON.parse(event.data.message);
+        const frameId = data.frameId;
+        const message = data.message;
+        const messageType = event.data.type;
+
+        addLog(message, frameId, messageType === 'error');
+      }
+    }
+
+    function addLog(message, id, error=false) {
+      const console = document.getElementById(`console${id}`);
+      const messageElement = document.createElement('span');
+      messageElement.textContent = message;
+      if (error)
+        messageElement.classList.add('error');
+      console.appendChild(messageElement);
+      console.scrollTop = console.scrollHeight;
+    }
+
+    window.addEventListener('message', receiveMessage, false);
+
+    function injectErrorHandling(page, id) {
+      return `
+        <script>
+          window.onerror = function(message, source, lineno, colno, error) {
+            const data = JSON.stringify({
+              message: message,
+              frameId: '${id}'
+            });
+            parent.postMessage({ type: 'error', message: data }, '*');
+            return true;
+          };
+
+          console.log = function() {
+            const data = JSON.stringify({
+              message: Array.from(arguments).join(' '),
+              frameId: '${id}'
+            });
+            parent.postMessage({ type: 'log', message: data }, '*');
+          };
+        <\/script>` + page;
+    }
+
+    function createPageContainer(pageNumber, pageContent) {
+      const pageContainer = document.createElement('div');
+      pageContainer.classList.add('page-container');
+
+      const iframe = document.createElement('iframe');
+      iframe.sandbox = 'allow-scripts allow-forms allow-pointer-lock'; // don't allow same-origin, or popups (alert)
+      iframe.id = `iframe${pageNumber}`;
+
+      const consoleContainer = document.createElement('div');
+      consoleContainer.classList.add('console-container');
+
+      const consoleHeader = document.createElement('div');
+      consoleHeader.classList.add('console-header');
+
+      const likeButton = document.createElement('button');
+      likeButton.title = 'select and generate variations';
+      likeButton.innerHTML = '<i class="fa fa-heart"></i>'
+      likeButton.addEventListener('click', () => {
+        handleLikeButton(Number(pageNumber));
+      });
+      consoleHeader.appendChild(likeButton);
+
+      const deleteButton = document.createElement('button');
+      deleteButton.title = 'delete page';
+      deleteButton.innerHTML = '<i class="fa fa-trash"></i>'
+      deleteButton.addEventListener('click', () => {
+        const code = empty_page;
+        changePage(pageNumber, code);
+      });
+      consoleHeader.appendChild(deleteButton);
+
+      const refreshButton = document.createElement('button');
+      refreshButton.title = 'refresh page';
+      refreshButton.innerHTML = '<i class="fa fa-sync"></i>'
+      refreshButton.addEventListener('click', () => {
+        const code = page_sources[pageNumber - 1];
+        changePage(pageNumber, code);
+      });
+      consoleHeader.appendChild(refreshButton);
+
+      const fixButton = document.createElement('button');
+      fixButton.title = 'fix errors';
+      fixButton.innerHTML = '<i class="fa fa-wrench"></i>'
+      consoleHeader.appendChild(fixButton);
+
+      const uploadButton = document.createElement('button');
+      uploadButton.title = 'upload page';
+      uploadButton.innerHTML = '<i class="fa fa-upload"></i>'
+      uploadButton.addEventListener('click', () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.html';
+        fileInput.addEventListener('change', () => {
+          const file = fileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const code = e.target.result;
+            changePage(pageNumber, code);
+          }
+          reader.readAsText(file);
+        });
+        fileInput.click();
+      });
+      consoleHeader.appendChild(uploadButton);
+
+      const downloadButton = document.createElement('button');
+      downloadButton.title = 'download page';
+      downloadButton.innerHTML = '<i class="fa fa-download"></i>'
+      downloadButton.addEventListener('click', () => {
+        const fileName = `page_${pageNumber}.html`;
+        const fileContent = page_sources[pageNumber - 1];
+        const blob = new Blob([fileContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+      consoleHeader.appendChild(downloadButton);
+
+      const openTabButton = document.createElement('button');
+      openTabButton.title = 'open in new tab';
+      openTabButton.innerHTML = '<i class="fa fa-external-link-alt"></i>'
+      openTabButton.addEventListener('click', () => {
+        let source = page_sources[pageNumber - 1];
+        let blob = new Blob([source], { type: 'text/html' });
+        let url = URL.createObjectURL(blob);
+        window.open(url);
+      });
+      consoleHeader.appendChild(openTabButton);
+
+      const console = document.createElement('div');
+      console.classList.add('console');
+      console.id = `console${pageNumber}`;
+
+      consoleContainer.appendChild(consoleHeader);
+      consoleContainer.appendChild(console);
+
+      pageContainer.appendChild(iframe);
+      pageContainer.appendChild(consoleContainer);
+
+      script = injectErrorHandling(pageContent, pageNumber);
+      iframe.srcdoc = script;
+
+      return pageContainer;
+    }
+
+    function createPages(pages) {
+      const pagesContainer = document.getElementById('pagesContainer');
+
+      pages.forEach((page, index) => {
+        const pageNumber = index + 1;
+        const pageContainer = createPageContainer(pageNumber, page);
+        pagesContainer.appendChild(pageContainer);
+      });
+
+      const pageContainers = pagesContainer.querySelectorAll('.page-container');
+      const pageHeight = (100 / pageContainers.length) + 'vh';
+    }
+
+    function changePage(pageNumber, code) {
+      // set background color to black
+      const body = document.querySelector('body');
+      body.style.backgroundColor = 'black';
+      const iframe = document.getElementById(`iframe${pageNumber}`);
+      iframe.srcdoc = '';
+      const console = document.getElementById(`console${pageNumber}`);
+      console.innerHTML = '';
+      const script = injectErrorHandling(code, pageNumber);
+      iframe.srcdoc = script;
+      page_sources[Number(pageNumber) - 1] = code;
+      body.style.backgroundColor = 'white';
+
+      // if code contains alert, prompt, or confirm add a warning to the console
+      if (code.includes('alert(') || code.includes('prompt(') || code.includes('confirm(')) {
+        addLog('Warning: This code contains alert, prompt, or confirm, which are ignored.', pageNumber, true);
+      }
+
+    }
+
+    function fillPrompts(systemPrompt, startPrompt, variationPrompt) {
+      const systemPromptElement = document.getElementById('systemPrompt');
+      systemPromptElement.textContent = systemPrompt;
+
+      const startPromptElement = document.getElementById('startPrompt');
+      startPromptElement.textContent = startPrompt;
+
+      const variationPromptElement = document.getElementById('variationPrompt');
+      variationPromptElement.textContent = variationPrompt;
+    }
+
+    const empty_page = `
+      <html>
+      <head>
+        <style>
+          body { margin: 0; padding: 0; background-color: black;}
+          .empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+          .empty span { font-size: 24px; }
+        </style>
+      </head>
+      </html>
+    `;
+
+    // a page that says generating... but animated so it goes from . to .. to ... and back
+    const generating_page = `
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <title>Generating Animation</title>
+    <style>
+      body, html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+      }
+      @keyframes dots {
+        0%, 100% { content: '...'; }
+        33% { content: '..'; }
+        66% { content: '.'; }
+      }
+    </style>
+    </head>
+    <body>
+    <div id="text">generating<span id="dots">...</span></div>
+
+    <script>
+      const dotsElement = document.getElementById('dots');
+      setInterval(() => {
+        const dots = dotsElement.textContent;
+        dotsElement.textContent = dots.length < 3 ? dots + '.' : '.';
+      }, 500);
+    <\/script>
+    </body>
+    </html>
+    `;
+
+
+    let systemPrompt = `
+    You are a creative genius AI that creates webpages with html, css, and javascript. Your goal is to make and modify original, creative works that conform to user requests.
+    Respond to requests with a single codeblock \`\`\` // like this \`\`\`. Assume all user requests are for webpage code, even if not explicitly stated.
+    The single codeblock should contain all the html, css, and javascript and be a complete, self-contained webpage, though you can use any library or framework you like. 
+    Ensure the code is efficient and will not crash the browser, and fits nicely in the window. Do not use three backticks \`\`\` inside the codeblock, if you need them 
+    split them up like this: "\`" + "\`" + "\`". Do not load any local resources, like images or fonts. Do not use alert(), prompt(), or confirm() unless explicitly requested.
+    Example response: \`\`\`<html><head><style>body { background-color: black; }</style></head><body></body></html>\`\`\`
+    `;
+    let startPrompt = `Make a house.`;
+    let variationPrompt = `Make creative improvements to this house.`;
+
+    fillPrompts(systemPrompt, startPrompt, variationPrompt);
+
+    const page_sources = [
+      empty_page, // first is always the selected code
+      empty_page,
+      empty_page,
+    ];
+    const generating_flags = [false, false, false];
+    createPages(page_sources);
+
+    const modelMap = {
+      'gpt3': 'gpt-3.5-turbo',
+      'gpt4': 'gpt-4-turbo-preview',
+      'claude-sonnet': 'claude-3-sonnet-20240229',
+      'claude-opus': 'claude-3-opus-20240229'
+    }
+    let currentModel = document.getElementById('model').value;
+    let gptAPIKey = '';
+    let claudeAPIKey = '';
+
+
+    async function promptGPT(prompt) {
+      if (!gptAPIKey) {
+        throw new Error('GPT API Key not set');
+      }
+      const model = modelMap[currentModel];
+      if (!model) {
+        throw new Error('Model not found');
+      }
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + gptAPIKey
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {"role": "system", "content": systemPrompt},
+            {"role": "user", "content": prompt},
+          ]
+        })
+      });
+      if (!response.ok) {
+        let error = await response.text();
+        throw new Error('Failed to generate code: ' + error);
+      }
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+
+    async function promptClaude(prompt) {
+      if (!claudeAPIKey) {
+        throw new Error('Anthropic API Key not set');
+      }
+      let full_output = '';
+      while (true) {
+        let messages = [
+          {"role": "user", "content": prompt}
+        ];
+        if (full_output) {
+          // remove trailing whitespace
+
+          let last_message = full_output.trimEnd();
+          console.log(`"${full_output}"`);
+          messages.push({"role": "assistant", "content": last_message});
+        }
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": claudeAPIKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            model: modelMap[currentModel],
+            max_tokens: 4096,
+            system: systemPrompt,
+            messages
+          })
+        })
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to generate code: ' + data.error);
+        }
+        full_output += data.content[0].text;
+        if (data.stop_reason !== 'max_tokens') {
+          console.log('done. stop reason:', data.stop_reason);
+          break;
+        }
+        console.log('continuing...');
+      }
+      return full_output;
+    }
+
+    let promptModel = promptGPT;
+
+    async function generateCode(message, pageNumber) {
+      if (generating_flags[pageNumber - 1])
+        return;
+      generating_flags[pageNumber - 1] = true;
+      let output;
+      try {
+        output = await promptModel(message);
+      } catch (error) {
+        // add error to console
+        changePage(pageNumber, empty_page);
+        addLog(error, pageNumber, true);
+        generating_flags[pageNumber - 1] = false;
+        return;
+      }
+      let code = output.split(`\`\`\``)[1];
+      // if code starts with "html" remove it
+      if (code.startsWith('html')) {
+        code = code.slice(4);
+      }
+      changePage(pageNumber, code);
+      generating_flags[pageNumber - 1] = false;
+    }
+
+    function generateVariations(code) {
+      changePage(1, code);
+      changePage(2, generating_page);
+      changePage(3, generating_page);
+
+      let variationPrompt = document.getElementById('variationPrompt').textContent;
+
+      let variationPromptFull = `${variationPrompt}\nCode to Modify: \`\`\`${code}\`\`\``;
+
+      generateCode(variationPromptFull, 2);
+      generateCode(variationPromptFull, 3);
+    }
+
+    const generateButton = document.getElementById('generateButton');
+    generateButton.addEventListener('click', () => {
+      // if first page is not empty, confirm that the user wants to start a new page
+      if (page_sources[0] !== empty_page) {
+        if (!confirm('Are you sure you want to start over? You will lose your current work.')) {
+          return;
+        }
+      }
+      const model = document.getElementById('model').value;
+      const systemPrompt = document.getElementById('systemPrompt').textContent;
+      const startPrompt = document.getElementById('startPrompt').textContent;
+
+      changePage(1, generating_page);
+      changePage(2, generating_page);
+      changePage(3, generating_page);
+
+      for (let i = 0; i < 3; i++) {
+        generateCode(startPrompt, i + 1);
+      }
+    });
+
+    const systemPromptEdit = document.getElementById('edit-system');
+    systemPromptEdit.addEventListener('click', () => {
+      const systemPromptElement = document.getElementById('systemPrompt');
+      let display = systemPromptElement.style.display === 'none' ? 'block' : 'none';
+      systemPromptElement.style.display = display;
+    });
+
+    handleLikeButton = (pageNumber) => {
+      let code = page_sources[pageNumber - 1];
+      if (code === empty_page || code === generating_page) {
+        return;
+      }
+      generateVariations(code);
+    }
+
+    const modelSelect = document.getElementById('model');
+    modelSelect.addEventListener('change', () => {
+      currentModel = modelSelect.value;
+      let apiKey = '';
+      if (currentModel === 'claude-sonnet' || currentModel === 'claude-opus') {
+        apiKey = claudeAPIKey;
+        promptModel = promptClaude;
+      } else {
+        apiKey = gptAPIKey;
+        promptModel = promptGPT;
+      }
+      document.getElementById('apiKey').value = apiKey;
+    });
+
+    const apiKeyInput = document.getElementById('apiKey');
+    apiKeyInput.addEventListener('input', () => {
+      if (currentModel === 'claude-sonnet' || currentModel === 'claude-opus') {
+        claudeAPIKey = apiKeyInput.value;
+      } else {
+        gptAPIKey = apiKeyInput.value;
+      }
+    });
+
+  </script>
+</body>
+</html>
