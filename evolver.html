@@ -25,7 +25,6 @@
     .control-panel button:hover { background-color: #6c757d; } 
     .control-panel button:active { background-color: #26292d; }
     .api-key-group { display: flex; align-items: center; }
-    /* add some space between the two */
     .api-key-group h4 { margin-right: 10px; padding-bottom: 10px; }
     .api-key-group input { flex: 1; }
     hr { margin: 20px 0; background-color: #495057; border: none; height: 2px; }
@@ -265,56 +264,57 @@
       variationPromptElement.textContent = variationPrompt;
     }
 
-    const empty_page = `
-      <html>
-      <head>
-        <style>
-          body { margin: 0; padding: 0; background-color: black;}
-          .empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-          .empty span { font-size: 24px; }
-        </style>
-      </head>
-      </html>
-    `;
-
-    // a page that says generating... but animated so it goes from . to .. to ... and back
+    const empty_page = `<style>body {background-color: black;}</style>`;
     const generating_page = `
-    <html lang="en">
-    <head>
-    <meta charset="UTF-8">
-    <title>Generating Animation</title>
     <style>
-      body, html {
-        height: 100%;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-      }
-      @keyframes dots {
-        0%, 100% { content: '...'; }
-        33% { content: '..'; }
-        66% { content: '.'; }
-      }
+    body {
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .helix-container {
+      position: relative;
+      width: 50vmin;
+      height: 20vmin;
+      transform-style: preserve-3d;
+      animation: rotate 4s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotateX(0deg); }
+      to { transform: rotateX(360deg); }
+    }
+
+    .rung {
+      position: absolute;
+      top: 2.5vmin;
+      width: 1px;
+      height: 50px;
+      background-color: white;
+    }
     </style>
-    </head>
-    <body>
-    <div id="text">generating<span id="dots">...</span></div>
+
+    <div class="helix-container"></div>
 
     <script>
-      const dotsElement = document.getElementById('dots');
-      setInterval(() => {
-        const dots = dotsElement.textContent;
-        dotsElement.textContent = dots.length < 3 ? dots + '.' : '.';
-      }, 500);
-    <\/script>
-    </body>
-    </html>
-    `;
+    const helixContainer = document.querySelector('.helix-container');
+    const numRungs = 20;
+    const rungSpacing = 50 / numRungs;
 
+    for (let i = 0; i < numRungs; i++) {
+      const rung = document.createElement('div');
+      rung.classList.add('rung');
+      rung.style.left = i * rungSpacing+"vmin";
+      rung.style.transform = "rotateX("+i * 180 / numRungs+"deg) translateZ(0)";
+      helixContainer.appendChild(rung);
+    }
+    <\/script>
+    `
 
     let systemPrompt = `
     You are a creative genius AI that creates webpages with html, css, and javascript. Your goal is to make and modify original, creative works that conform to user requests.
