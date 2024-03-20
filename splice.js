@@ -1,6 +1,7 @@
 function Splice(toModify, spliceCode) {
 	const lines = toModify.split('\n');
 	const commandRegex = /^(insert|delete|replace)\s+(\d+)(?:\s+(\d+))?\s*(?:`{3}([\s\S]*?)`{3})?/gm;
+	// this regex monstrosity is AI generated, may contain bugs
 
 	const commands = [];
 	const spliceCopy = JSON.parse(JSON.stringify(spliceCode));
@@ -19,7 +20,7 @@ function Splice(toModify, spliceCode) {
 	const overlappingRange = (a, b) => {
 		return (a.start <= b.start && a.end >= b.start) || (b.start <= a.start && b.end >= a.start);
 	}
-	console.log(commands);
+	// console.log(commands);
 	const ignored = [];
 	const finalCommands = [];
 	for (const c of commands) {
@@ -47,8 +48,6 @@ function Splice(toModify, spliceCode) {
 
 	for (const command of finalCommands) {
 		const { type, start, end, block } = command;
-		console.log('before:', lines);
-
 		switch (type) {
 			case 'insert':
 				lines.splice(start - 1, 0, ...block);
@@ -60,10 +59,8 @@ function Splice(toModify, spliceCode) {
 				lines.splice(start - 1, end - start + 1, ...block);
 				break;
 		}
-		console.log('after:', lines);
 	}
 	const modified = lines.join('\n');
-
 	return { modified, ignored };
 }
 
@@ -82,9 +79,9 @@ function Splice(toModify, spliceCode) {
 // </html>
 // `;
 
-// // replace hello world with goodbye world
-// // delete the title tag
-// // insert a js script that prints hello world
+// replace hello world with goodbye world
+// delete the title tag
+// insert a js script that prints hello world
 // const spliceCode = `
 // replace 8 9 \`\`\`\t<h1>Goodbye, World!</h1>\`\`\`
 // delete 5 6
