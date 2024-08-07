@@ -5,15 +5,14 @@
   <title>Code Evolver</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
   <style>
-	body, html { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; display: flex; }
+	body, html { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; display: flex; font-size: 18px; font-family: 'Roboto', sans-serif; }
+  button { font-size: 18px; }
 	.pages-container { width: 100%; display: flex; flex-direction: column; flex-grow: 1; }
 	.page-container { height: 33%; display: flex; flex-direction: row; flex: 1; top: 0; }
 	iframe { width: 100%; height: 100%; border: none; box-sizing: border-box; flex-grow: 5; flex: 5; margin: -1px 0px -1px 0px;}
 	.console-container { display: flex; flex:2; flex-direction: column; box-sizing: border-box; border: 1px solid rgb(82, 82, 82); }
 	.console-header { background-color: #343a40; justify-content: space-between; padding: 5px; display: flex; }
 	.console-header button { background-color: #495057; color: #fff; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer; align-items: center; flex: 1; }
-	.console-header button:hover { background-color: #6c757d; }
-	.console-header button:active { background-color: #26292d; }
 	.console { background-color: #212529; color: #fff; padding: 10px; overflow-x: wrap; overflow-y: auto; font-family: monospace; box-sizing: border-box; flex: 1; }
 	.console span { display: block; }
 	.console span.error { color: #dc3545; }
@@ -22,9 +21,15 @@
 	.control-panel select { width: 100%; height: 30px; background-color: #343a40; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; }
 	.control-panel span { display: block; margin-bottom: 10px; border: 1px solid #495057; padding: 3px; }
 	.control-panel button { width: 100%; height: 30px; background-color: #495057; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; cursor: pointer; }
-	.control-panel button:hover { background-color: #6c757d; } 
-	.control-panel button:active { background-color: #26292d; }
 	.control-panel hr { margin: 20px 0; background-color: #495057; border: none; height: 2px; }
+  .control-panel .select-button-container { display: flex; justify-content: space-between; }
+  .control-panel .select-button { background-color: #495057; color: white; border: none; padding: 5px 10px; margin-right: 5px; margin-left: 5px; }
+  .control-panel .select-button:hover { background-color: #6e6e70; }
+  .control-panel .select-button:active { background-color: #323232; }
+  #settings-icons { cursor: pointer; width: 50px; user-select: none; }
+  #settings-icons:hover { color: #6e6e70; }
+  #settings-icons:active { color: #323232; }
+  span { background-color: #343a40 }
 	.checkbox-container { display: inline-block; align-items: center; white-space: nowrap; justify-content: flex-start; }
 	.checkbox-container input { height: 20px; align-items: left; width: 20px; }
 	.checkbox-container label { margin-top: 10px; font-size: 18px; }
@@ -32,13 +37,18 @@
 	.api-key-group h4 { margin-right: 10px; padding-bottom: 10px; }
 	.api-key-group input { flex: 1; }
 	.fa-edit { cursor: pointer; }
-	.source-code-window { position: absolute; top: 10%; left: 10%; width: 80%; height: 80%;  background-color: #343a40; color: white; z-index: 100; align-items: center; justify-content: center; border: 5px solid rgb(82, 82, 82);}
+	.source-code-window { position: absolute; top: 10%; left: 10%; width: 80%; height: 80%;  background-color: #212529; color: white; z-index: 100; align-items: center; justify-content: center; border: 5px solid rgb(82, 82, 82);}
 	.source-code-window h1 { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
 	.source-code-window button { position: absolute; top: 10px; right: 10px; background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
-	.source-code-window button:hover { background-color: #6c757d; }
-	.source-code-window button:active { background-color: #26292d; }
 	.source-code-window pre { width: 90%; height: 80%; left: 5%; top: 10%; position: absolute; overflow: auto;  background-color: #16191b; padding: 10px; box-sizing: border-box; }
-	#bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 2px; background-color: black; } /* covers weird bottom iframe border */
+  .start-window { position: absolute; top: 25%; left: 25%; width: 50%; height: 50%;  background-color: #212529; color: white; z-index: 100; align-items: center; justify-content: center; border: 5px solid rgb(82, 82, 82);}
+  .close-start-window { position: absolute; top: 10px; right: 10px; background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+  .generate-button { position: absolute; bottom: 10px; width: 70%; left: 50%; transform: translateX(-50%); background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+  #start-window h3 { margin-left: 50px; }
+  .start-window span { width: 90%; height: 60%; left: 5%; position: absolute; overflow: auto; padding: 10px; box-sizing: border-box; border: 2px solid #495057; }
+  #bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 2px; background-color: black; } /* covers weird bottom iframe border */
+  button:hover { background-color: #6e6e70; }
+	button:active { background-color: #323232; }
   </style>
 </head>
 <body>
@@ -48,13 +58,10 @@
     <hr>
 
     <div id="modifyInput" style="display: none;">
-      <h3>Modify Prompt</h3>
+      <h3>Modify Prompt:</h3>
       <span id="variationPrompt" role="textbox" contenteditable spellcheck="false" ></span>
     </div>
-
-    <h3>Start Prompt</h3>
-    <span id="startPrompt" role="textbox" contenteditable spellcheck="false"></span>
-    <button id="generateButton">Start New</button>
+    <button id="startButton">Start New</button>
 
     <h3>Model</h3>
     
@@ -65,36 +72,41 @@
       <option value="gpt-4o-mini">GPT 4o mini</option>
       <option value="gemini-1.5-pro">Gemini 1.5 pro</option>
       <option value="gemini-1.5-flash">Gemini 1.5 flash</option>
-      <!-- <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+      <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
       <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
       <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-      <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option> -->
-      <option value="claude-3-haiku-20240307" disabled>Claude 3 Haiku</option>
+      <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
+      <!-- <option value="claude-3-haiku-20240307" disabled>Claude 3 Haiku</option>
       <option value="claude-3-sonnet-20240229" disabled>Claude 3 Sonnet</option>
       <option value="claude-3-opus-20240229" disabled>Claude 3 Opus</option>
-      <option value="claude-3-5-sonnet-20240620" disabled>Claude 3.5 Sonnet</option>
+      <option value="claude-3-5-sonnet-20240620" disabled>Claude 3.5 Sonnet</option> -->
     </select>
 
     <div class="api-key-group">
       <h4>API Key</h4>
       <input type="password" id="apiKey" placeholder="(will not be saved)" required>
     </div>
-
-    <div class="checkbox-container">
-      <label title="Minimal editing mode where the model writes only the code that needs to change, rather rewriting it in full. Efficient but error-prone.">
-      Splice Editing <input type="checkbox" id="splice-editing" >
-      </label>
+    <div id="settings-icons">
+      <i class="fa fa-cog"></i>
+      <i class="fa fa-caret-up" id="settingsCarrot"></i>
     </div>
-
-    <h3>Temperature</h3>
-    <input type="range" id="temperature" min="0.1" max="1.0" step="0.01" value="0.5">
-
-    <h3>System Prompt <i class="fa fa-edit" id="edit-systemPrompt"></i></h3>
-    <span id="systemPrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
-    <h3>Basic Coding Prompt <i class="fa fa-edit" id="edit-fullCodingPrompt" ></i></h3>
-    <span id="fullCodingPrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
-    <h3>Splice Prompt <i class="fa fa-edit" id="edit-splicePrompt"></i></h3>
-    <span id="splicePrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
+    <div class="settings" id="settings" style="display: none;">
+      <div class="checkbox-container">
+        <label title="Minimal editing mode where the model writes only the code that needs to change, rather rewriting it in full. Efficient but error-prone.">
+        Splice Editing <input type="checkbox" id="splice-editing" >
+        </label>
+      </div>
+  
+      <h3>Temperature</h3>
+      <input type="range" id="temperature" min="0.1" max="1.0" step="0.01" value="0.5">
+  
+      <h3>System Prompt <i class="fa fa-edit" id="edit-systemPrompt"></i></h3>
+      <span id="systemPrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
+      <h3>Basic Coding Prompt <i class="fa fa-edit" id="edit-fullCodingPrompt" ></i></h3>
+      <span id="fullCodingPrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
+      <h3>Splice Prompt <i class="fa fa-edit" id="edit-splicePrompt"></i></h3>
+      <span id="splicePrompt" role="textbox" contenteditable spellcheck="false" style="display: none;" ></span>
+    </div>
 
   </div>
   <div class="pages-container" id="pagesContainer"></div>
@@ -104,6 +116,14 @@
     <h1>Source Code</h1>
     <pre id="source-code-window-text"></pre>
   </div>
+
+  <div class="start-window" id="start-window" style="display: none;">
+    <button id="close-start-window" class="close-start-window"><i class="fa fa-times"></i></button><br>
+    <h3>Give a prompt for a website:</h3>
+    <span id="startPrompt" role="textbox" contenteditable spellcheck="false"></span>
+    <button id="generateButton" class="generate-button">Start Evolving</button>
+  </div>
+
   <div id="bottom-bar"></div>
 
   <script src="splice.js"></script>
@@ -176,7 +196,7 @@
 
       const likeButton = document.createElement('button');
       likeButton.title = 'select and generate variations';
-      likeButton.innerHTML = '<i class="fa fa-code-fork fa-rotate-180"></i>'
+      likeButton.innerHTML = '<i class="fa fa-heart"></i>'
       likeButton.addEventListener('click', () => {
       handleLikeButton(Number(pageNumber));
       });
@@ -221,19 +241,21 @@
       uploadButton.title = 'upload replacement html file';
       uploadButton.innerHTML = '<i class="fa fa-upload"></i>'
       uploadButton.addEventListener('click', () => {
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = '.html';
-      fileInput.addEventListener('change', () => {
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-        const code = e.target.result;
-        changePage(pageNumber, code);
-        }
-        reader.readAsText(file);
-      });
-      fileInput.click();
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.html';
+        fileInput.addEventListener('change', () => {
+          const file = fileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = function(e) {
+          const code = e.target.result;
+          changePage(pageNumber, code);
+          }
+          reader.readAsText(file);
+          document.getElementById('modifyInput').style.display = 'block';
+
+        });
+        fileInput.click();
       });
       consoleHeader.appendChild(uploadButton);
 
@@ -241,15 +263,23 @@
       downloadButton.title = 'download html file';
       downloadButton.innerHTML = '<i class="fa fa-download"></i>'
       downloadButton.addEventListener('click', () => {
-      const fileName = `page_${pageNumber}.html`;
-      const fileContent = page_sources[pageNumber - 1];
-      const blob = new Blob([fileContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      link.click();
-      URL.revokeObjectURL(url);
+
+        // check if page has title tag
+        let fileName = `page_${pageNumber}.html`;
+        let currentContent = page_sources[pageNumber - 1];
+        let title = currentContent.match(/<title>(.*?)<\/title>/);
+        console.log(title);
+        if (title) {
+          fileName = `${title[1]}.html`;
+        }
+        const fileContent = page_sources[pageNumber - 1];
+        const blob = new Blob([fileContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(url);
       });
       consoleHeader.appendChild(downloadButton);
 
@@ -264,12 +294,12 @@
       });
       consoleHeader.appendChild(openTabButton);
 
-      const console = document.createElement('div');
-      console.classList.add('console');
-      console.id = `console${pageNumber}`;
+      const consoleEl = document.createElement('div');
+      consoleEl.classList.add('console');
+      consoleEl.id = `console${pageNumber}`;
 
       consoleContainer.appendChild(consoleHeader);
-      consoleContainer.appendChild(console);
+      consoleContainer.appendChild(consoleEl);
 
       pageContainer.appendChild(iframe);
       pageContainer.appendChild(consoleContainer);
@@ -363,11 +393,11 @@
   You are a creative genius AI that creates webpages with html, css, and javascript. Your goal is to make and modify original, creative works that conform to user requests.
   Assume all user requests are for webpage code, even if not explicitly stated. Ensure the code is efficient and will not crash the browser, and fits nicely in the window. 
   DO NOT CHAT AT ALL. Do not describe your code or include responses like "Sure, here's the code:". Only write a codeblock and nothing else.
-  Do not use three backticks \`\`\` inside the codeblocks, if you need them split them up like this: "\`" + "\`" + "\`". You can use any library or framework you like, but 
-  do not load any local resources. Do not use alert(), prompt(), or confirm() unless explicitly requested.
+  Besides the wrapping backticks, do not use three backticks \`\`\` inside the codeblocks, if you need them split them up like this: "\`" + "\`" + "\`". 
+  You can use any library or framework you like, but do not load any local resources. Do not use alert(), prompt(), or confirm() unless explicitly requested.
   This is extremely important to me, take a deep breath and good luck!`.trim();
-    let startPrompt = `Make a house.`;
-    let variationPrompt = `Make creative improvements to this house.`;
+    let startPrompt = `Make a house plz.`;
+    let variationPrompt = ``;
 
     let fullCodingPrompt = `
   Respond to requests with a single codeblock \`\`\` // like this \`\`\`. The single codeblock should contain all the html, css, and javascript and be a complete, 
@@ -389,7 +419,7 @@
   replace start_line_num end_line_num \`\`\`// code to replace given line numbers with
   // same syntax for replacing with multiple lines  \`\`\`
 
-  "insert" will add the given code at the given line number, pushing the existing at that line and below down.
+  "insert" will add the given code at the given line number, pushing the existing code at that line and below down.
   "delete" will remove the lines from start_line_num to end_line_num, inclusive.
   "replace" will remove the lines from start_line_num to end_line_num, inclusive, and insert the given code at the start_line_num.
 
@@ -464,7 +494,7 @@
       element.appendChild(fragment);
     }
 
-    function fillPrompts(systemPrompt, startPrompt, variationPrompt) {
+    function fillPrompts(systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt) {
       insertTextContent('systemPrompt', systemPrompt);
       insertTextContent('startPrompt', startPrompt);
       insertTextContent('variationPrompt', variationPrompt);
@@ -700,26 +730,49 @@
 
     }
 
+    document.getElementById('startButton').addEventListener('click', () => {
+      const startWindow = document.getElementById('start-window');
+      startWindow.style.display = 'block';
+      document.getElementById('startPrompt').focus();
+    });
+    document.getElementById('close-start-window').addEventListener('click', () => {
+      const startWindow = document.getElementById('start-window');
+      startWindow.style.display = 'none';
+    });
+    document.getElementById('settings-icons').addEventListener('click', () => {
+      const settings = document.getElementById('settings');
+      let display = settings.style.display === 'none' ? 'block' : 'none';
+      settings.style.display = display;
+      // replace caret with up or down
+      const settingsCarrot = document.getElementById('settingsCarrot');
+      settingsCarrot.classList.toggle('fa-caret-down');
+      settingsCarrot.classList.toggle('fa-caret-up');
+    });
+
     const generateButton = document.getElementById('generateButton');
     generateButton.addEventListener('click', () => {
-      // if first page is not empty, confirm that the user wants to start a new page
-      if (page_sources[0] !== empty_page) {
-      if (!confirm('Are you sure you want to start over? You will lose your current work.')) {
+      const apiKeySet = !!document.getElementById('apiKey').value;
+      if (!apiKeySet) {
+        document.getElementById('apiKey').focus();
         return;
       }
-      }
+      const startWindow = document.getElementById('start-window');
+      startWindow.style.display = 'none';
       const model = document.getElementById('model').value;
       const systemPrompt = document.getElementById('systemPrompt').textContent + document.getElementById('fullCodingPrompt').textContent;
       const startPrompt = document.getElementById('startPrompt').textContent;
+      variationPrompt = startPrompt.trim() + '\nNow creatively modify this code.';
+      insertTextContent('variationPrompt', variationPrompt);
 
       changePage(1, generating_page);
       changePage(2, generating_page);
       changePage(3, generating_page);
 
       document.getElementById('modifyInput').style.display = 'block';
+      document.getElementById('startButton').textContent = 'Start Over';
 
       for (let i = 0; i < 3; i++) {
-      generateFullCode(systemPrompt, startPrompt, i + 1);
+        generateFullCode(systemPrompt, startPrompt, i + 1);
       }
     });
 
