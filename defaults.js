@@ -1,38 +1,70 @@
-const empty_page = `<style>body {background-color: black;}</style>`;
+const empty_page = `<style>body {background-color: black;</style>`
 const generating_page = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animated Ellipsis</title>
 <style>
 body {
-background-color: black;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-margin: 0;
-overflow: hidden;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    flex-direction: column;
 }
 
 .helix-container {
-position: relative;
-width: 50vmin;
-height: 20vmin;
-transform-style: preserve-3d;
-animation: rotate 4s linear infinite;
+    position: relative;
+    width: 50vmin;
+    height: 20vmin;
+    transform-style: preserve-3d;
+    animation: rotate 4s linear infinite;
 }
 
 @keyframes rotate {
-from { transform: rotateX(0deg); }
-to { transform: rotateX(360deg); }
+    from { transform: rotateX(0deg); }
+    to { transform: rotateX(360deg); }
 }
 
 .rung {
-position: absolute;
-top: 2.5vmin;
-width: 1px;
-height: 50px;
-background-color: white;
+    position: absolute;
+    top: 2.5vmin;
+    width: 1px;
+    height: 50px;
+    background-color: white;
+}
+
+.evolving-text {
+    display: flex;
+    align-items: center;
+}
+
+.evolving-text::after {
+    content: '';
+    width: 36px;
+    display: inline-block;
+    text-align: left;
+    animation: ellipsis 1s infinite;
+}
+
+@keyframes ellipsis {
+    0%, 25% { content: ''; }
+    26%, 50% { content: '.'; }
+    51%, 75% { content: '..'; }
+    76%, 100% { content: '...'; }
 }
 </style>
-
+</head>
+<body>
+<div class="evolving-text">evolving</div>
 <div class="helix-container"></div>
 
 <script>
@@ -41,14 +73,15 @@ const numRungs = 20;
 const rungSpacing = 50 / numRungs;
 
 for (let i = 0; i < numRungs; i++) {
-const rung = document.createElement('div');
-rung.classList.add('rung');
-rung.style.left = i * rungSpacing+"vmin";
-rung.style.transform = "rotateX("+i * 180 / numRungs+"deg) translateZ(0)";
-helixContainer.appendChild(rung);
+    const rung = document.createElement('div');
+    rung.classList.add('rung');
+    rung.style.left = i * rungSpacing + "vmin";
+    rung.style.transform = "rotateX(" + i * 180 / numRungs + "deg) translateZ(0)";
+    helixContainer.appendChild(rung);
 }
-// this code was ai generated .__.
-<\/script>
+</script>
+</body>
+</html>
 `
 
 let systemPrompt = `
@@ -57,7 +90,7 @@ Assume all user requests are for webpage code, even if not explicitly stated. En
 DO NOT CHAT AT ALL. Do not describe your code or include responses like "Sure, here's the code:". Only write a codeblock and nothing else. 
 Besides the wrapping backticks, do not use three backticks \`\`\` inside the codeblocks, if you need them split them up like this: "\`" + "\`" + "\`". 
 You can use any library or framework you like, but do not load any local resources. Do not use alert(), prompt(), or confirm() unless explicitly requested.
-Leave a signature in the comments with a creative emoticon if you want. This is extremely important to me, take a deep breath and good luck!`.trim();
+This is extremely important to me, take a deep breath and good luck!`.trim();
 let startPrompt = `Make a house plz.`;
 let variationPrompt = ``;
 

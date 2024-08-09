@@ -8,28 +8,38 @@
 	body, html { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; display: flex; font-size: 18px; font-family: 'Roboto', sans-serif; }
   button { font-size: 18px; }
 	.pages-container { width: 100%; display: flex; flex-direction: column; flex-grow: 1; }
-	.page-container { height: 33%; display: flex; flex-direction: row; flex: 1; top: 0; }
-	iframe { width: 100%; height: 100%; border: none; box-sizing: border-box; flex-grow: 5; flex: 5; margin: -1px 0px -1px 0px;}
+	.page-container { height: 33.33%; display: flex; flex-direction: row; flex: 1; top: 0; }
+	iframe { border: none; box-sizing: border-box; flex-grow: 5; flex: 5; margin: -1px 0px -1px 0px;}
 	.console-container { display: flex; flex:2; flex-direction: column; box-sizing: border-box; border: 1px solid rgb(82, 82, 82); }
 	.console-header { background-color: #343a40; justify-content: space-between; padding: 5px; display: flex; }
 	.console-header button { background-color: #495057; color: #fff; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer; align-items: center; flex: 1; }
 	.console { background-color: #212529; color: #fff; padding: 10px; overflow-x: wrap; overflow-y: auto; font-family: monospace; box-sizing: border-box; flex: 1; }
 	.console span { display: block; }
 	.console span.error { color: #dc3545; }
+  .edit-panel { background-color: #212529; color: #fff; padding: 10px; overflow-x: wrap; overflow-y: auto; font-family: monospace; box-sizing: border-box; flex: 1; display: none; }
 	.control-panel { width: 30%; background-color: #212529; padding: 10px; box-sizing: border-box; color: white; overflow: auto; border: 1px solid rgb(82, 82, 82);}
 	.control-panel input { width: 100%; height: 30px; background-color: #343a40; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; overflow: wrap; }
 	.control-panel select { width: 100%; height: 30px; background-color: #343a40; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; }
-	.control-panel span { display: block; margin-bottom: 10px; border: 1px solid #495057; padding: 3px; }
 	.control-panel button { width: 100%; height: 30px; background-color: #495057; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; cursor: pointer; }
 	.control-panel hr { margin: 20px 0; background-color: #495057; border: none; height: 2px; }
   .control-panel .select-button-container { display: flex; justify-content: space-between; }
   .control-panel .select-button { background-color: #495057; color: white; border: none; padding: 5px 10px; margin-right: 5px; margin-left: 5px; }
   .control-panel .select-button:hover { background-color: #6e6e70; }
   .control-panel .select-button:active { background-color: #323232; }
+  .control-panel span { border: 1px solid #495057; }
+  .control-panel span:hover { border: 1px solid #8e8e90; }
+  #claude-warning { color: #ffd37c; display: none; margin-top: 0px; }
+  #claude-warning a { color: #ffd37c; }
+  #claude-warning a:hover { color: #fff0d3; }
+  #claude-warning a:active { color: #ffd37c; }
+  #claude-warning a:visited { color: #a88a4e; }
+  #claude-warning a:visited:hover { color: #fff0d3; }
   #settings-icons { cursor: pointer; width: 50px; user-select: none; }
   #settings-icons:hover { color: #6e6e70; }
   #settings-icons:active { color: #323232; }
-  span { background-color: #343a40 }
+  .variationPromptInput { background-color: #2a3035; display: block; margin-bottom: 10px; border: 1px solid #495057; padding: 3px; overflow: auto; box-sizing: border-box; white-space: pre-wrap; }
+  .variationPromptInput:hover { border: 1px solid #8e8e90; }
+  .generate-variations-button { width: 100%; height: 30px; background-color: #495057; color: #fff; border: none; padding: 5px; box-sizing: border-box; margin-bottom: 10px; cursor: pointer; }
 	.checkbox-container { display: inline-block; align-items: center; white-space: nowrap; justify-content: flex-start; }
 	.checkbox-container input { height: 20px; align-items: left; width: 20px; }
 	.checkbox-container label { margin-top: 10px; font-size: 18px; }
@@ -39,13 +49,19 @@
 	.fa-edit { cursor: pointer; }
 	.source-code-window { position: absolute; top: 10%; left: 10%; width: 80%; height: 80%;  background-color: #212529; color: white; z-index: 100; align-items: center; justify-content: center; border: 5px solid rgb(82, 82, 82);}
 	.source-code-window h1 { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
-	.source-code-window button { position: absolute; top: 10px; right: 10px; background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
-	.source-code-window pre { width: 90%; height: 80%; left: 5%; top: 10%; position: absolute; overflow: auto;  background-color: #16191b; padding: 10px; box-sizing: border-box; }
+	.source-code-window button { background-color: #495057; color: white; cursor: pointer; border: none; cursor: pointer; }
+  .source-code-window button:hover { background-color: #6e6e70; }
+  .source-code-window #close-source-code-window { position: absolute; top: 10px; right: 10px; padding: 5px 10px; }
+  .source-code-bottom-buttons-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
+  .source-code-bottom-button { border: none; padding: 5px 10px; min-width: 200px;}
+  .source-code-window span { width: 90%; height: 80%; left: 5%; top: 10%; position: absolute; overflow: auto; padding: 10px; box-sizing: border-box; border: 1px solid #495057; white-space: pre-wrap; }
+  .source-code-window span:hover { border: 1px solid #8e8e90; }
   .start-window { position: absolute; top: 25%; left: 25%; width: 50%; height: 50%;  background-color: #212529; color: white; z-index: 100; align-items: center; justify-content: center; border: 5px solid rgb(82, 82, 82);}
   .close-start-window { position: absolute; top: 10px; right: 10px; background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
   .generate-button { position: absolute; bottom: 10px; width: 70%; left: 50%; transform: translateX(-50%); background-color: #495057; color: white; border: none; padding: 5px 10px; cursor: pointer; }
   #start-window h3 { margin-left: 50px; }
-  .start-window span { width: 90%; height: 60%; left: 5%; position: absolute; overflow: auto; padding: 10px; box-sizing: border-box; border: 2px solid #495057; }
+  .start-window span { background-color: #2a3035; width: 90%; height: 60%; left: 3.5%; position: absolute; padding: 10px; border: 1px solid #495057; }
+  .start-window span:hover { border: 1px solid #8e8e90; }
   #bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 2px; background-color: black; } /* covers weird bottom iframe border */
   button:hover { background-color: #6e6e70; }
 	button:active { background-color: #323232; }
@@ -56,11 +72,6 @@
     <h1>Code Evolver 🧬</h1>
     
     <hr>
-
-    <div id="modifyInput" style="display: none;">
-      <h3>Modify Prompt:</h3>
-      <span id="variationPrompt" role="textbox" contenteditable spellcheck="false" ></span>
-    </div>
     <button id="startButton">Start New</button>
 
     <h3>Model</h3>
@@ -76,16 +87,14 @@
       <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
       <option value="claude-3-opus-20240229">Claude 3 Opus</option>
       <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
-      <!-- <option value="claude-3-haiku-20240307" disabled>Claude 3 Haiku</option>
-      <option value="claude-3-sonnet-20240229" disabled>Claude 3 Sonnet</option>
-      <option value="claude-3-opus-20240229" disabled>Claude 3 Opus</option>
-      <option value="claude-3-5-sonnet-20240620" disabled>Claude 3.5 Sonnet</option> -->
     </select>
-
     <div class="api-key-group">
       <h4>API Key</h4>
       <input type="password" id="apiKey" placeholder="(will not be saved)" required>
     </div>
+    <p id="claude-warning">Warning: You must disable CORS to use Claude 
+      <a href="https://medium.com/@beligh.hamdi/run-chrome-browser-without-cors-872747142c61" target="_blank"><i class="fa fa-question-circle"></i></a>
+    </p>
     <div id="settings-icons">
       <i class="fa fa-cog"></i>
       <i class="fa fa-caret-up" id="settingsCarrot"></i>
@@ -114,7 +123,11 @@
   <div class="source-code-window" id="source-code-window" style="display: none;">
     <button id="close-source-code-window"><i class="fa fa-times"></i></button>
     <h1>Source Code</h1>
-    <pre id="source-code-window-text"></pre>
+    <span id="source-code-window-text" role="textbox" contenteditable spellcheck="false" ></span>
+    <div class="source-code-bottom-buttons-container">
+      <button id="apply-changed-code" title="apply your code changes to current page" class="source-code-bottom-button">Apply Changes</button>
+      <button id="copy-code" title="copy code" class="source-code-bottom-button"><i class="fa fa-copy"></i></button>
+    </div>
   </div>
 
   <div class="start-window" id="start-window" style="display: none;">
@@ -130,6 +143,8 @@
   <script src="defaults.js"></script>
   <!-- empty_page, generating_page, systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt all defined in defaults.js -->
   <script>
+    let currentSelection = -1;
+
     function receiveMessage(event) {
       if (event.data.type === 'error' || event.data.type === 'log') {
       const data = JSON.parse(event.data.message);
@@ -197,12 +212,44 @@
       consoleHeader.classList.add('console-header');
 
       const likeButton = document.createElement('button');
-      likeButton.title = 'select and generate variations';
-      likeButton.innerHTML = '<i class="fa fa-heart"></i>'
+      likeButton.title = 'like and modify';
+      likeButton.innerHTML = '<i class="fa fa-heart"></i>';
       likeButton.addEventListener('click', () => {
-      handleLikeButton(Number(pageNumber));
+        handleLikeButton(Number(pageNumber));
       });
       consoleHeader.appendChild(likeButton);
+
+      const inspectButton = document.createElement('button');
+      inspectButton.title = 'edit source code';
+      inspectButton.innerHTML = '<i class="fa fa-dna"></i>';
+      const sourceCodeWindow = document.getElementById('source-code-window');
+      inspectButton.addEventListener('click', () => {
+        const sourceCodeWindowText = document.getElementById('source-code-window-text');
+        // insertTextContentElement(sourceCodeWindowText, page_sources[pageNumber - 1]);
+        sourceCodeWindowText.textContent = page_sources[pageNumber - 1];
+        sourceCodeWindow.style.display = 'block';
+        sourceCodeWindow.querySelector('h1').textContent = `Page ${pageNumber} Source Code`;
+        const copyCode = () => {
+          const sourceCodeWindowText = document.getElementById('source-code-window-text');
+          navigator.clipboard.writeText(sourceCodeWindowText.textContent);
+        };
+        const applyCode = () => {
+          const newCode = sourceCodeWindowText.textContent;
+          changePage(pageNumber, newCode);
+          closeSourceCode();
+        };
+        document.getElementById('copy-code').addEventListener('click', copyCode);
+        document.getElementById('apply-changed-code').addEventListener('click', applyCode);
+        const closeSourceCodeWindow = document.getElementById('close-source-code-window');
+        function closeSourceCode() {
+          sourceCodeWindow.style.display = 'none';
+          document.getElementById('copy-code').removeEventListener('click', copyCode);
+          document.getElementById('apply-changed-code').removeEventListener('click', applyCode);
+          closeSourceCodeWindow.removeEventListener('click', closeSourceCode);
+        }
+        closeSourceCodeWindow.addEventListener('click', closeSourceCode);
+      });
+      consoleHeader.appendChild(inspectButton);
 
       const refreshButton = document.createElement('button');
       refreshButton.title = 'refresh page';
@@ -213,35 +260,21 @@
       });
       consoleHeader.appendChild(refreshButton);
 
-      const inspectButton = document.createElement('button');
-      inspectButton.title = 'view source code';
-      inspectButton.innerHTML = '<i class="fa fa-dna"></i>'
-      inspectButton.addEventListener('click', () => {
-      const sourceCodeWindow = document.getElementById('source-code-window');
-      const sourceCodeWindowText = document.getElementById('source-code-window-text');
-      sourceCodeWindowText.textContent = page_sources[pageNumber - 1];
-      sourceCodeWindow.style.display = 'block';
-      sourceCodeWindow.querySelector('h1').textContent = `Page ${pageNumber} Source Code`;
-      const closeSourceCodeWindow = document.getElementById('close-source-code-window');
-      closeSourceCodeWindow.addEventListener('click', () => {
-        sourceCodeWindow.style.display = 'none';
-      });
-      });
-      consoleHeader.appendChild(inspectButton);
-
-
       const deleteButton = document.createElement('button');
       deleteButton.title = 'delete page';
       deleteButton.innerHTML = '<i class="fa fa-trash"></i>'
       deleteButton.addEventListener('click', () => {
-      const code = empty_page;
-      changePage(pageNumber, code);
+        const code = empty_page;
+        changePage(pageNumber, code);
+        if (currentSelection === pageNumber) {
+          clearLikes();
+        }
       });
       consoleHeader.appendChild(deleteButton);
 
       const uploadButton = document.createElement('button');
       uploadButton.title = 'upload replacement html file';
-      uploadButton.innerHTML = '<i class="fa fa-upload"></i>'
+      uploadButton.innerHTML = '<i class="fa fa-file-arrow-up"></i>'
       uploadButton.addEventListener('click', () => {
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
@@ -254,7 +287,6 @@
           changePage(pageNumber, code);
           }
           reader.readAsText(file);
-          document.getElementById('modifyInput').style.display = 'block';
 
         });
         fileInput.click();
@@ -263,14 +295,12 @@
 
       const downloadButton = document.createElement('button');
       downloadButton.title = 'download html file';
-      downloadButton.innerHTML = '<i class="fa fa-download"></i>'
+      downloadButton.innerHTML = '<i class="fa fa-save"></i>'
       downloadButton.addEventListener('click', () => {
 
-        // check if page has title tag
         let fileName = `page_${pageNumber}.html`;
         let currentContent = page_sources[pageNumber - 1];
         let title = currentContent.match(/<title>(.*?)<\/title>/);
-        console.log(title);
         if (title) {
           fileName = `${title[1]}.html`;
         }
@@ -289,10 +319,10 @@
       openTabButton.title = 'open in new tab';
       openTabButton.innerHTML = '<i class="fa fa-external-link-alt"></i>'
       openTabButton.addEventListener('click', () => {
-      let source = page_sources[pageNumber - 1];
-      let blob = new Blob([source], { type: 'text/html' });
-      let url = URL.createObjectURL(blob);
-      window.open(url);
+        let source = page_sources[pageNumber - 1];
+        let blob = new Blob([source], { type: 'text/html' });
+        let url = URL.createObjectURL(blob);
+        window.open(url);
       });
       consoleHeader.appendChild(openTabButton);
 
@@ -302,6 +332,46 @@
 
       consoleContainer.appendChild(consoleHeader);
       consoleContainer.appendChild(consoleEl);
+
+
+      const editPanel = document.createElement('div');
+      editPanel.classList.add('edit-panel');
+      editPanel.id = `editPanel${pageNumber}`;
+      editPanel.style.display = 'none';
+
+      const modifyPromptHeader = document.createElement('p');
+      modifyPromptHeader.textContent = 'What would you like to change?';
+      editPanel.appendChild(modifyPromptHeader);
+      
+      const variationPromptEl = document.createElement('span');
+      variationPromptEl.id = `variationPrompt${pageNumber}`;
+      variationPromptEl.classList.add('variationPromptInput');
+      variationPromptEl.setAttribute('role', 'textbox');
+      variationPromptEl.setAttribute('contenteditable', 'true');
+      variationPromptEl.setAttribute('spellcheck', 'false');
+      
+      variationPromptEl.addEventListener('input', () => {
+        variationPrompt = variationPromptEl.textContent;
+        const variationPromptInputs = document.querySelectorAll('.variationPromptInput');
+        variationPromptInputs.forEach(input => {
+          if (input !== variationPromptEl) {
+            // insertTextContentElement(input, variationPrompt);
+            input.textContent = variationPrompt;
+          }
+        });
+      });
+
+      consoleContainer.appendChild(editPanel);
+      editPanel.appendChild(variationPromptEl);
+
+      const generateVariationsButton = document.createElement('button');
+      generateVariationsButton.title = 'generate 2 variations using the above prompt';
+      generateVariationsButton.classList.add('generate-variations-button');
+      generateVariationsButton.textContent = 'Generate Variations';
+      generateVariationsButton.addEventListener('click', () => {
+        handleGenerateVariations();
+      });
+      editPanel.appendChild(generateVariationsButton);
 
       pageContainer.appendChild(iframe);
       pageContainer.appendChild(consoleContainer);
@@ -350,26 +420,35 @@
       }
     });
 
-    function insertTextContent(id, text) {
-      // have to do this to preserve newlines ¯\_(ツ)_/¯
-      const element = document.getElementById(id);
+    function insertTextContentElement(element, text) {
       element.textContent = '';
       let fragment = document.createDocumentFragment();
       text.split('\n').forEach((line, index, array) => {
-      fragment.appendChild(document.createTextNode(line+'\n'));
-      if (index < array.length - 1) {
-        fragment.appendChild(document.createElement('br'));
-      }
+        fragment.appendChild(document.createTextNode(line+'\n'));
+        if (index < array.length - 1) {
+          fragment.appendChild(document.createElement('br'));
+        }
       });
       element.appendChild(fragment);
+    }
+
+    function insertTextContent(id, text) {
+      const element = document.getElementById(id);
+      insertTextContentElement(element, text);
     }
 
     function fillPrompts(systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt) {
       insertTextContent('systemPrompt', systemPrompt);
       insertTextContent('startPrompt', startPrompt);
-      insertTextContent('variationPrompt', variationPrompt);
       insertTextContent('fullCodingPrompt', fullCodingPrompt);
       insertTextContent('splicePrompt', splicePrompt);
+
+      const variationPromptInputs = document.querySelectorAll('.variationPromptInput');
+      variationPromptInputs.forEach(input => {
+        // insertTextContentElement(input, variationPrompt);
+        input.textContent = variationPrompt;
+      });
+
     }
 
     fillPrompts(systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt);
@@ -554,7 +633,7 @@
       generating_flags[pageNumber - 1] = false;
       return;
       }
-      console.log(`Full model output: "${output}"`);
+      // console.log(`Full model output: "${output}"`);
       const { modified, ignored } = Splice(original_code, output);
 
       changePage(pageNumber, modified);
@@ -569,7 +648,7 @@
     addLineNumbers = (code) => {
       let lines = code.split('\n');
       let numberedLines = lines.map((line, index) => {
-      return `${index + 1}: ${line}`;
+        return `${index + 1}: ${line}`;
       });
       return numberedLines.join('\n');
     }
@@ -580,22 +659,22 @@
       changePage(3, generating_page);
 
       let system = document.getElementById('systemPrompt').textContent;
-      let variationPrompt = document.getElementById('variationPrompt').textContent;
+      let fullVariationPrompt = variationPrompt;
 
       let splice = !!document.getElementById('splice-editing').checked;
       if (splice) {
-      let splicePrompt = document.getElementById('splicePrompt').textContent;
-      system += splicePrompt;
-      variationPrompt = `${variationPrompt}\nCode to Modify: \`\`\`${addLineNumbers(code)}\`\`\``;
-      generateSplicedCode(system, variationPrompt, 2, code);
-      generateSplicedCode(system, variationPrompt, 3, code);
+        let splicePrompt = document.getElementById('splicePrompt').textContent;
+        system += splicePrompt;
+        fullVariationPrompt = `${fullVariationPrompt}\nCode to Modify: \`\`\`${addLineNumbers(code)}\`\`\``;
+        generateSplicedCode(system, fullVariationPrompt, 2, code);
+        generateSplicedCode(system, fullVariationPrompt, 3, code);
       } 
       else {
-      let fullCodingPrompt = document.getElementById('fullCodingPrompt').textContent;
-      system += fullCodingPrompt;
-      variationPrompt = `${variationPrompt}\nCode to Modify: \`\`\`${code}\`\`\``;
-      generateFullCode(system, variationPrompt, 2);
-      generateFullCode(system, variationPrompt, 3);
+        let fullCodingPrompt = document.getElementById('fullCodingPrompt').textContent;
+        system += fullCodingPrompt;
+        fullVariationPrompt = `${fullVariationPrompt}\nCode to Modify: \`\`\`${code}\`\`\``;
+        generateFullCode(system, fullVariationPrompt, 2);
+        generateFullCode(system, fullVariationPrompt, 3);
       }
 
     }
@@ -626,23 +705,21 @@
         document.getElementById('apiKey').focus();
         return;
       }
+      clearLikes();
       const startWindow = document.getElementById('start-window');
       startWindow.style.display = 'none';
       const model = document.getElementById('model').value;
-      const systemPrompt = document.getElementById('systemPrompt').textContent + document.getElementById('fullCodingPrompt').textContent;
+      const systemPromptFull = document.getElementById('systemPrompt').textContent + document.getElementById('fullCodingPrompt').textContent;
       const startPrompt = document.getElementById('startPrompt').textContent;
       variationPrompt = startPrompt.trim() + '\nNow creatively modify this code.';
-      insertTextContent('variationPrompt', variationPrompt);
+      fillPrompts(systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt);
 
       changePage(1, generating_page);
       changePage(2, generating_page);
       changePage(3, generating_page);
 
-      document.getElementById('modifyInput').style.display = 'block';
-      document.getElementById('startButton').textContent = 'Start Over';
-
       for (let i = 0; i < 3; i++) {
-        generateFullCode(systemPrompt, startPrompt, i + 1);
+        generateFullCode(systemPromptFull, startPrompt, i + 1);
       }
     });
 
@@ -659,24 +736,90 @@
     handleLikeButton = (pageNumber) => {
       let code = page_sources[pageNumber - 1];
       if (code === empty_page || code === generating_page) {
-      return;
+        return;
+      }
+      fillPrompts(systemPrompt, startPrompt, variationPrompt, fullCodingPrompt, splicePrompt);
+
+      const editPanel = document.getElementById(`editPanel${pageNumber}`);
+      const console = document.getElementById(`console${pageNumber}`);
+      let icon = null;
+      const startEditing = editPanel.style.display === 'none';
+      if (startEditing) {
+        currentSelection = pageNumber;
+      } else {
+        currentSelection = -1;
+      }
+      const allConsoleContainers = document.querySelectorAll('.console-container');
+      allConsoleContainers.forEach((consoleContainer) => {
+        const curConsole = consoleContainer.querySelector('.console');
+        const curEditPanel = consoleContainer.querySelector('.edit-panel');
+        const curIcon = consoleContainer.querySelector('.fa-heart');
+        if (curConsole === console) {
+          icon = curIcon;
+          return;
+        }
+        if (curEditPanel.style.display === 'block') {
+          curEditPanel.style.display = 'none';
+          curConsole.style.display = 'block';
+          curIcon.style.color = 'white';
+        }
+      });
+      if (startEditing) {
+        editPanel.style.display = 'block';
+        console.style.display = 'none';
+        icon.style.color = '#ff69b4';
+        const variationPromptEl = document.getElementById(`variationPrompt${pageNumber}`);
+        variationPromptEl.focus();
+      } else {
+        editPanel.style.display = 'none';
+        console.style.display = 'block';
+        icon.style.color = 'white';
+      }
+    }
+
+    function handleGenerateVariations() {
+      if (currentSelection === -1) {
+        return;
+      }
+      let code = page_sources[currentSelection - 1];
+      if (code === empty_page || code === generating_page) {
+        return;
+      }
+      if (!document.getElementById('apiKey').value) {
+        document.getElementById('apiKey').focus();
+        return;
       }
       generateVariations(code);
+      clearLikes();
+    }
+
+    function clearLikes() {
+      currentSelection = -1;
+      const allConsoleContainers = document.querySelectorAll('.console-container');
+      allConsoleContainers.forEach((consoleContainer) => {
+        const curIcon = consoleContainer.querySelector('.fa-heart');
+        curIcon.style.color = 'white';
+        consoleContainer.querySelector('.edit-panel').style.display = 'none';
+        consoleContainer.querySelector('.console').style.display = 'block';
+      });
     }
 
     const modelSelect = document.getElementById('model');
     modelSelect.addEventListener('change', () => {
       currentModel = modelSelect.value;
       let apiKey = '';
+      const claudeWarning = document.getElementById('claude-warning');
+      claudeWarning.style.display = 'none';
       if (currentModel.includes('claude')) {
-      apiKey = claudeAPIKey;
-      promptModel = promptClaude;
+        apiKey = claudeAPIKey;
+        promptModel = promptClaude;
+        claudeWarning.style.display = 'block';
       } else if (currentModel.includes('gemini')) {
-      apiKey = geminiAPIKey;
-      promptModel = promptGemini;
+        apiKey = geminiAPIKey;
+        promptModel = promptGemini;
       } else {
-      apiKey = gptAPIKey;
-      promptModel = promptGPT;
+        apiKey = gptAPIKey;
+        promptModel = promptGPT;
       }
       document.getElementById('apiKey').value = apiKey;
     });
@@ -684,11 +827,11 @@
     const apiKeyInput = document.getElementById('apiKey');
     apiKeyInput.addEventListener('input', () => {
       if (currentModel.includes('claude')) {
-      claudeAPIKey = apiKeyInput.value;
+        claudeAPIKey = apiKeyInput.value;
       } else if (currentModel.includes('gemini')) {
-      geminiAPIKey = apiKeyInput.value;
+        geminiAPIKey = apiKeyInput.value;
       } else {
-      gptAPIKey = apiKeyInput.value;
+        gptAPIKey = apiKeyInput.value;
       }
     });
 
